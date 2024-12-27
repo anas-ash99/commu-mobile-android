@@ -1,4 +1,4 @@
-package com.commu.mobile.presentaion.ui.home
+package com.commu.mobile.presentaion.ui.home_screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Tab
@@ -19,6 +18,7 @@ import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -29,7 +29,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import com.commu.mobile.R
+import com.commu.mobile.presentaion.events.ChatScreenEvents
+import com.commu.mobile.presentaion.events.HomeScreenEvents
 
 @Composable
 fun MainTabs() {
@@ -56,14 +61,14 @@ fun MainTabs() {
                     ) {
                         if (index == 0) {
                             Icon(
-                                painter = painterResource(id = R.drawable.chat_icon),
+                                painter = painterResource(id = R.drawable.chats),
                                 "chat icon",
                                 Modifier
                                     .size(25.dp)
                                     .padding(end = 2.dp)
                             )
                         } else {
-                            Icon(Icons.Outlined.Call, "call")
+                            Icon(painter = painterResource(id = R.drawable.phone), contentDescription = "phone", Modifier.size(25.dp))
                         }
                         Spacer(Modifier.width(5.dp))
                         Text(title, fontSize = 17.sp)
@@ -78,7 +83,7 @@ fun MainTabs() {
 
 
 @Composable
-fun Header(onMenuClick:() -> Unit){
+fun Header(onEvent:(HomeScreenEvents) -> Unit){
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -103,4 +108,30 @@ fun Header(onMenuClick:() -> Unit){
 
 }
 
+
+
+@Composable
+fun TrackUserActivity(lifecycleOwner: LifecycleOwner, onStateChange: (Lifecycle.Event) -> Unit) {
+    val lifecycle = lifecycleOwner.lifecycle
+
+    // Observe lifecycle changes
+    DisposableEffect(lifecycle) {
+        val observer = LifecycleEventObserver { _, event ->
+            onStateChange(event)
+//            when (event) {
+//                Lifecycle.Event.ON_START -> onStateChange("App Resumed")
+//                Lifecycle.Event.ON_STOP -> onStateChange("App Backgrounded")
+//                Lifecycle.Event.ON_DESTROY -> onStateChange("App Exited")
+//                else -> { /* No action */ }
+//            }
+        }
+
+        lifecycle.addObserver(observer)
+
+        // Clean up when the Composable is removed
+        onDispose {
+            lifecycle.removeObserver(observer)
+        }
+    }
+}
 
